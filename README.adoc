@@ -14,11 +14,11 @@
 
 В составе проекта представлены следующие артефакты:
 
-* [Архитектурное решение](./architecture-decision.adoc)
+* link:./architecture-decision.adoc[Архитектурное решение]
 
-* [Отчеты о выполнении ДЗ и проекта](./Отчет.adoc)
+* link:./Отчет.adoc[Отчеты о выполнении ДЗ и проекта]
 
-Используется формат описания [AsciiDoc](https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/)
+Используется формат описания link:https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/[AsciiDoc]
 
 Рендер в pdf:
 
