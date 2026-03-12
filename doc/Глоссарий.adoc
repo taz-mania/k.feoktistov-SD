@@ -7,6 +7,7 @@
 | WMS | Warehouse Management System | Cистема управления складом (СУС)
 | OMS | Order Management System | Cистема управления заказами
 | PPE | Pricing/Promo Engine | Механизм ценообразования/промоакций 
+| ERP | Enterprise Resource Planning | Cистема планирования ресурсов предприятия
 | SKU | Stock Keeping Unit | Единица складского учёта
 | RTO | Recovery Time Objective | Целевое время восстановления сервиса
 | ТСД | Терминал сбора данных | Носимый, иногда карманный мобильный компьютер, оборудованный средствами сканирования шьрих и QR-кодов 
