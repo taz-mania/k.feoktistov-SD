@@ -1,5 +1,7 @@
 === Схема концептуальной архитектуры
 
-ifndef::imagesdir[:imagesdir: {docdir}/images]
 
-image::hla.png[]
+ifndef::imagesdir[:imagesdir: /doc/images]
+
+
+image::CD_servuce_architecture_4.png[CD сервиса]
