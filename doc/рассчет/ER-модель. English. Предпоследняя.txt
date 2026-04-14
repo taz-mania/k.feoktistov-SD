@@ -1,0 +1,253 @@
+erDiagram
+    
+    %% ==================== EVENT STORE (Write Model / Source of Truth) ====================
+    INVENTORY_EVENTS {
+        uuid event_id PK
+        string event_type
+        string aggregate_id
+        string sku_id
+        string store_id
+        jsonb payload
+        timestamp event_timestamp
+        timestamp recorded_at
+        string correlation_id
+        string source_system
+        bigint sequence_number
+    }
+    
+    RESERVATION_EVENTS {
+        uuid event_id PK
+        uuid reservation_id
+        string event_type
+        string sku_id
+        string store_id
+        int quantity
+        int ttl_seconds
+        timestamp created_at
+    }
+    
+    %% ==================== METADATA STORE (Master Data) ====================
+    CATEGORY {
+        string category_id PK
+        string category_code
+        string name
+        string parent_category_id FK
+        boolean is_perishable
+        int default_safety_stock
+        string velocity_class
+    }
+    
+    SKU {
+        string sku_id PK
+        string name
+        string category_id FK
+        string subcategory_id
+        boolean is_perishable
+        boolean is_organic
+        string unit_of_measure
+        int safety_stock_default
+        int shelf_life_hours
+    }
+    
+    STORE {
+        string store_id PK
+        string name
+        string address
+        decimal latitude
+        decimal longitude
+        string timezone
+        boolean is_active
+        string store_format
+        string wms_code
+        int pos_terminal_count
+    }
+    
+    ASSORTMENT {
+        string sku_id FK
+        string store_id FK
+        boolean is_active
+        string planogram_location
+        int custom_safety_stock
+        int min_display_qty
+    }
+    
+    GEO_LOCATION {
+        uuid location_id PK
+        string store_id FK
+        string location_type
+        decimal latitude
+        decimal longitude
+        decimal altitude
+        jsonb address_details
+        boolean is_active
+    }
+    
+    USER {
+        uuid user_id PK
+        string username
+        string role
+        string assigned_stores
+        boolean is_active
+    }
+    
+    USER_ROLES {
+        int role_id PK
+        string role_code
+        string role_name
+        jsonb permissions
+    }
+    
+    USER_ROLE_ASSIGNMENTS {
+        uuid user_id FK
+        int role_id FK
+        uuid assigned_by
+        timestamp assigned_at
+    }
+    
+    CACHE_CONFIG {
+        int config_id PK
+        string store_id
+        string sku_category
+        int ttl_seconds
+        int warming_priority
+    }
+    
+    %% ==================== RESERVATION DB (Transactional / ACID) ====================
+    RESERVATION {
+        uuid reservation_id PK
+        string order_id
+        string user_id
+        string status
+        timestamp created_at
+        timestamp expires_at
+        timestamp confirmed_at
+        int total_items
+        int version
+    }
+    
+    RESERVATION_STATUS {
+        string status_code PK
+        string status_name
+        boolean is_terminal
+        string color_code
+    }
+    
+    RESERVATION_ITEMS {
+        uuid item_id PK
+        uuid reservation_id FK
+        string sku_id
+        string store_id
+        string sku_store_key
+        int quantity
+        decimal unit_price
+    }
+    
+    USER_RESERVATION_LIMITS {
+        string user_id PK
+        int active_count
+        int active_total_qty
+        timestamp last_reservation_at
+    }
+    
+    RESERVATION_OUTBOX {
+        uuid id PK
+        uuid aggregate_id
+        string event_type
+        jsonb payload
+        timestamp created_at
+        boolean published
+    }
+    
+    %% ==================== READ MODEL STORAGE (Projections) ====================
+    INVENTORY_SNAPSHOT {
+        string snapshot_id PK
+        string sku_id
+        string store_id
+        string sku_name
+        string category_id
+        string store_name
+        int on_shelf_qty
+        int reserved_qty
+        int available_qty
+        int safety_stock
+        uuid last_event_id
+        timestamp last_event_timestamp
+        timestamp materialized_at
+    }
+    
+    %% ==================== TIME-SERIES STORAGE (Analytics) ====================
+    TIME_SERIES_POINTS {
+        timestamp time PK
+        string sku_id PK
+        string store_id PK
+        string metric_name PK
+        double value
+        string category_id
+        boolean is_weekend
+    }
+    
+    %% ==================== CONFLICT RESOLUTION DB ====================
+    CONFLICT_RECORD {
+        uuid conflict_id PK
+        timestamp detected_at
+        string status
+        string sku_id
+        string store_id
+        int pos_value
+        int wms_value
+        int cached_value
+        int expected_value
+        int actual_value
+        string resolution_strategy
+        int adjustment_applied
+        uuid adjusted_by
+        string source_event_ids
+        jsonb audit_log
+    }
+    
+    RESOLUTION_POLICIES {
+        int policy_id PK
+        string category_id
+        int threshold_abs
+        decimal threshold_pct
+        string action
+        string priority_source
+    }
+    
+    %% ==================== RELATIONSHIPS (ИСПРАВЛЕННЫЙ БЛОК) ====================
+    
+    %% Hierarchies and Master Data
+    CATEGORY ||--o{ CATEGORY : "parent_of"
+    CATEGORY ||--o{ SKU : "categorizes"
+    SKU ||--o{ ASSORTMENT : "included_in"
+    STORE ||--o{ ASSORTMENT : "sells"
+    STORE ||--o{ GEO_LOCATION : "located_at"
+    
+    %% User Management
+    USER ||--o{ USER_ROLE_ASSIGNMENTS : "has"
+    USER_ROLES ||--o{ USER_ROLE_ASSIGNMENTS : "assigned_to"
+    
+    %% Reservation Domain
+    RESERVATION ||--o{ RESERVATION_ITEMS : "contains"
+    RESERVATION ||--|| RESERVATION_STATUS : "has_status"
+    RESERVATION_ITEMS ||--o| SKU : "references"
+    RESERVATION_ITEMS ||--o| STORE : "references"
+    USER ||--o| USER_RESERVATION_LIMITS : "monitored_by"
+    RESERVATION ||--o{ RESERVATION_OUTBOX : "publishes_via"
+    
+    %% Event Sourcing Flows
+    INVENTORY_EVENTS ||--o{ INVENTORY_SNAPSHOT : "materializes_to"
+    INVENTORY_EVENTS ||--o{ CONFLICT_RECORD : "analyzed_by"
+    RESERVATION_EVENTS ||--o{ RESERVATION : "projects_to"
+    
+    %% Conflict Resolution
+    CONFLICT_RECORD ||--o{ RESOLUTION_POLICIES : "resolved_by"
+    CONFLICT_RECORD ||--o| SKU : "concerns"
+    CONFLICT_RECORD ||--o| STORE : "concerns"
+    
+    %% Analytics - ИСПРАВЛЕНО (добавлены связи)
+    TIME_SERIES_POINTS ||--o| SKU : "measures"
+    TIME_SERIES_POINTS ||--o| CATEGORY : "aggregates_by_category"
+    
+    %% References to Master Data for Conflicts
+    RESOLUTION_POLICIES ||--o| CATEGORY : "applies_to_category"
