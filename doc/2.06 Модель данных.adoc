@@ -143,9 +143,9 @@ erDiagram
 
 ====== Графическое представление модели
 
-//ifndef::imagesdir[:imagesdir: /doc/images]
+ifndef::imagesdir[:imagesdir: /doc/images]
 
-//image::ER_dadamodel_diagram_1.png[CD сервиса]
+image::ER_dadamodel_diagram_1.png[CD сервиса]
 
 ==== 2.6.3. Обеспечения консистентности
 
