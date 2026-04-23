@@ -15,4 +15,5 @@
 | RTT | Round-Trip Time | Время прохождения сетевого запроса туда и обратно
 | CRDT | Conflict-free Replicated Data Type | Структура данных для распределённых систем
 | ESL | Electronic Shelf Labels | Электронные ценники 
+| WAL | Write-Ahead Log | Журнал предзаписи СУБД
 |===
