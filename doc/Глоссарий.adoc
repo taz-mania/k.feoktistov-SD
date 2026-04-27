@@ -16,4 +16,6 @@
 | CRDT | Conflict-free Replicated Data Type | Структура данных для распределённых систем
 | ESL | Electronic Shelf Labels | Электронные ценники 
 | WAL | Write-Ahead Log | Журнал предзаписи СУБД
+| CDC | Change Data Capture | Механизм захвата изменений данных
+
 |===
