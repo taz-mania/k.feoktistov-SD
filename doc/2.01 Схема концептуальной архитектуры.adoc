@@ -6,4 +6,4 @@
 
 ifndef::imagesdir[:imagesdir: /doc/images]
 
-image::CD_servuce_architecture_6.png[CD сервиса]
+image::CD_servuce_architecture_6.png[Концептуальный дизайн (CD) Сервиса]
