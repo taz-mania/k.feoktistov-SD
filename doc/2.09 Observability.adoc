@@ -28,7 +28,8 @@ Load Balancer
 p95 / p99 latency, +
 4xx / 5xx error rate, +
 rate limit triggered
-| * рост latency → перегрузка сервисов или downstream-компонентов; +
+| 
+* рост latency → перегрузка сервисов или downstream-компонентов; +
 * рост 5xx → деградация backend; +
 * срабатывание rate limit → перегрузка входного контура
 
@@ -40,7 +41,8 @@ p95 / p99 latency, +
 cache_hit_ratio (коэффициент попаданий в кеш), +
 fallback_rate (доля fallback на read-model), +
 error_rate
-| * cache_hit_ratio < 80% → проблема с кешем или прогревом; +
+| 
+* cache_hit_ratio < 80% → проблема с кешем или прогревом; +
 * рост fallback_rate → деградация кеша; +
 * рост latency → проблемы в распределенном кеша / Гео-сервисе / Хранилище модели чтения
 
