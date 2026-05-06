@@ -17,5 +17,6 @@
 | ESL | Electronic Shelf Labels | Электронные ценники 
 | WAL | Write-Ahead Log | Журнал предзаписи СУБД
 | CDC | Change Data Capture | Механизм захвата изменений данных
+| DLQ | Dead Letter Queue | Очередь ошибочных сообщений
 
 |===
