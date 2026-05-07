@@ -1,14 +1,23 @@
 == ГЛОССАРИЙ
 
-[cols="1,1,2", options="header"] 
+[cols="0,1,2", options="header"] 
 |=== 
 | Термин или сокрашение | Подробный термин или описание | Описание
 | POS | Point of Sale | Кассовый терминал. Точка и момент покупки
 | WMS | Warehouse Management System | Cистема управления складом (СУС)
 | OMS | Order Management System | Cистема управления заказами
-| PPE | Pricing/Promo Engine | Механизм ценообразования/промоакций 
+| PPE | Pricing/Promo Engine | Механизм ценообразования/промоакций
 | ERP | Enterprise Resource Planning | Cистема планирования ресурсов предприятия
 | SKU | Stock Keeping Unit | Единица складского учёта
 | RTO | Recovery Time Objective | Целевое время восстановления сервиса
-| ТСД | Терминал сбора данных | Носимый, иногда карманный мобильный компьютер, оборудованный средствами сканирования шьрих и QR-кодов 
+| ТСД | Терминал сбора данных | Носимый, иногда карманный мобильный компьютер, оборудованный средствами сканирования шьрих и QR-кодов
+| SPIFFE | Secure Production Identity Framework For Everyone | Cтандарт идентификации сервисов
+| RTT | Round-Trip Time | Время прохождения сетевого запроса туда и обратно
+| CRDT | Conflict-free Replicated Data Type | Структура данных для распределённых систем
+| ESL | Electronic Shelf Labels | Электронные ценники
+| WAL | Write-Ahead Log | Журнал предзаписи СУБД
+| CDC | Change Data Capture | Механизм захвата изменений данных
+| DLQ | Dead Letter Queue | Очередь ошибочных сообщений
+| MTTD | Mean Time To Detect | Среднее время обнаружения инцидента
+| MTTR | Mean Time To Recover | Среднее время восстановления работоспособности
 |===
