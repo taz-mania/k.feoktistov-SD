@@ -20,4 +20,5 @@
 | DLQ | Dead Letter Queue | Очередь ошибочных сообщений
 | MTTD | Mean Time To Detect | Среднее время обнаружения инцидента
 | MTTR | Mean Time To Recover | Среднее время восстановления работоспособности
+| PEP | Policy Enforcement Point | Точка применения политик безопасности 
 |===
