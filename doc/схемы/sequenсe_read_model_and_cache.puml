@@ -1,0 +1,48 @@
+@startuml read_model_update_and_cach_loading
+title Обновление модели чтения и загрузка кеша
+
+queue "Event Bus" as EventBus
+participant "Обработчик модели чтения" as ReadModelUpdater
+database "Хранилище модели чтения" as ReadModelStore
+database "Распределенный кеш" as Cache
+database "Хранилище событий" as EventStore
+
+EventBus -> ReadModelUpdater: Consume InventoryUpdated /\nReservationCreated /\nReservationCancelled
+activate ReadModelUpdater
+
+ReadModelUpdater -> ReadModelUpdater: Проверка идемпотентности\nпо eventId / sourceEventId
+
+alt Событие уже обработано
+    ReadModelUpdater -> EventBus: Commit offset
+    deactivate ReadModelUpdater
+
+else Новое событие
+    ReadModelUpdater -> EventStore: Проверка версии события\nи порядка обработки
+    activate EventStore
+    EventStore --> ReadModelUpdater: eventVersion,\neventTime
+    deactivate EventStore
+
+    ReadModelUpdater -> ReadModelStore: UPSERT availability\nskuId + storeId
+    activate ReadModelStore
+
+    ReadModelStore --> ReadModelUpdater: available_qty,\nreserved_qty,\nversion
+    deactivate ReadModelStore
+
+    alt Прямая загрузка кеша
+        ReadModelUpdater -> Cache: SET availability:{skuId}:{storeId}\navailable_qty,\nreserved_qty,\nupdated_at
+        activate Cache
+        Cache --> ReadModelUpdater: OK
+        deactivate Cache
+
+    else Инвалидация кеша
+        ReadModelUpdater -> Cache: DELETE availability:{skuId}:{storeId}
+        activate Cache
+        Cache --> ReadModelUpdater: OK
+        deactivate Cache
+    end
+
+    ReadModelUpdater -> EventBus: Commit offset
+    deactivate ReadModelUpdater
+end
+
+@enduml
