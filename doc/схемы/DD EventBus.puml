@@ -1,0 +1,103 @@
+@startuml
+title Deployment-диаграмма топологии Event Bus
+
+skinparam componentStyle rectangle
+skinparam wrapWidth 220
+skinparam maxMessageSize 180
+
+node "Kafka Cluster\nEvent Bus" as KafkaCluster {
+
+  node "Kafka Broker 1" as B1
+  node "Kafka Broker 2" as B2
+  node "Kafka Broker 3" as B3
+
+  artifact "Topic: inventory.events\npartitions: 6+\nreplication factor: 3\nformat: Avro" as InventoryTopic
+
+  artifact "Topic: reservation.events\npartitions: 6+\nreplication factor: 3\nformat: Avro" as ReservationTopic
+
+  artifact "Topic: admin.events\npartitions: 3+\nreplication factor: 3\nformat: Avro" as AdminTopic
+
+  artifact "Topic: problematic.events\npartitions: 3+\nreplication factor: 3\nformat: Avro" as ProblemTopic
+}
+
+node "Продюсеры событий" as Producers {
+  component "Адаптер POS" as PosAdapter
+  component "Адаптер WMS" as WmsAdapter
+  component "Сервис резервирования" as ReservationService
+  component "Административный сервис" as AdminService
+}
+
+node "Группы потребителей" as Consumers {
+  component "consumer group:\nread-model-updater\nОбновление модели чтения" as ReadModelUpdater
+  component "consumer group:\ncache-invalidator\nИнвалидация / загрузка кеша" as CacheInvalidator
+  component "consumer group:\nanalytics-consumer\nАгрегация метрик" as AnalyticsConsumer
+  component "consumer group:\nconflict-detector\nВыявление конфликтов" as ConflictDetector
+}
+
+database "Хранилище событий" as EventStore
+database "Хранилище модели чтения" as ReadModelStore
+database "Распределенный кеш" as Cache
+database "Хранилище временных рядов" as MetricsStore
+database "БД конфликтов" as ConflictStore
+
+PosAdapter --> EventStore : append InventoryUpdated\nSQL/PostgreSQL
+WmsAdapter --> EventStore : append InventoryUpdated\nSQL/PostgreSQL
+ReservationService --> EventStore : append ReservationCreated /\nReservationCancelled\nSQL/PostgreSQL
+AdminService --> EventStore : append AdminChanged\nSQL/PostgreSQL
+
+PosAdapter --> InventoryTopic : publish\nKafka protocol / Avro
+WmsAdapter --> InventoryTopic : publish\nKafka protocol / Avro
+ReservationService --> ReservationTopic : publish\nKafka protocol / Avro
+AdminService --> AdminTopic : publish\nKafka protocol / Avro
+
+InventoryTopic .. B1
+InventoryTopic .. B2
+InventoryTopic .. B3
+
+ReservationTopic .. B1
+ReservationTopic .. B2
+ReservationTopic .. B3
+
+AdminTopic .. B1
+AdminTopic .. B2
+AdminTopic .. B3
+
+ProblemTopic .. B1
+ProblemTopic .. B2
+ProblemTopic .. B3
+
+InventoryTopic --> ReadModelUpdater : consume\nKafka protocol / Avro
+ReservationTopic --> ReadModelUpdater : consume\nKafka protocol / Avro
+AdminTopic --> ReadModelUpdater : consume\nKafka protocol / Avro
+
+InventoryTopic --> CacheInvalidator : consume\nKafka protocol / Avro
+ReservationTopic --> CacheInvalidator : consume\nKafka protocol / Avro
+
+InventoryTopic --> AnalyticsConsumer : consume\nKafka protocol / Avro
+ReservationTopic --> AnalyticsConsumer : consume\nKafka protocol / Avro
+AdminTopic --> AnalyticsConsumer : consume\nKafka protocol / Avro
+
+InventoryTopic --> ConflictDetector : consume\nKafka protocol / Avro
+ReservationTopic --> ConflictDetector : consume\nKafka protocol / Avro
+
+ReadModelUpdater --> ReadModelStore : upsert availability\nMongoDB protocol
+CacheInvalidator --> Cache : set / delete availability key\nRedis protocol
+AnalyticsConsumer --> MetricsStore : write metrics\nHTTP / remote write
+ConflictDetector --> ConflictStore : save conflict\nSQL/PostgreSQL
+
+ReadModelUpdater --> ProblemTopic : publish processing error\nKafka protocol / Avro
+CacheInvalidator --> ProblemTopic : publish processing error\nKafka protocol / Avro
+ConflictDetector --> ProblemTopic : publish processing error\nKafka protocol / Avro
+
+note right of KafkaCluster
+Топики распределены по брокерам.
+Для ключевых потоков используется
+replication factor = 3.
+
+Партиционирование выполняется
+по skuId + storeId, чтобы события
+по одному товару и магазину
+обрабатывались в устойчивом порядке.
+end note
+
+@enduml

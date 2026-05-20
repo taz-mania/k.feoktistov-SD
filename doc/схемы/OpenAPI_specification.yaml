@@ -1,0 +1,440 @@
+openapi: 3.0.3
+
+info:
+  title: Inventory Availability API
+  version: 1.0.0
+  description: API сервиса проверки доступности и резервирования товаров
+
+servers:
+  - url: https://api.eda.example.com
+    description: Внешний API Gateway
+
+tags:
+  - name: Availability
+    description: Проверка доступности товаров
+  - name: Reservations
+    description: Резервирование товаров
+  - name: Stores
+    description: Поиск магазинов и доступность товаров по магазинам
+  - name: SKUs
+    description: Информация о товарах
+  - name: Health
+    description: Проверка доступности Сервиса
+
+paths:
+
+  /api/v1/availability:
+    get:
+      tags:
+        - Availability
+      summary: Проверка наличия товара
+      description: >
+        Возвращает актуальную информацию о доступности товара в конкретном магазине.
+        Метод используется клиентскими приложениями для проверки возможности покупки
+        или резервирования товара.
+      operationId: getAvailability
+
+      parameters:
+        - name: skuId
+          in: query
+          required: true
+          description: Идентификатор товара
+          schema:
+            type: string
+            example: "sku-100045"
+
+        - name: storeId
+          in: query
+          required: true
+          description: Идентификатор магазина
+          schema:
+            type: string
+            example: "store-077"
+
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Идентификатор запроса для трассировки
+          schema:
+            type: string
+            example: "req-8f4f3b9a"
+
+      responses:
+        "200":
+          description: Информация о доступности товара успешно получена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AvailabilityResponse"
+              example:
+                skuId: "sku-100045"
+                storeId: "store-077"
+                availableQty: 12
+                reservedQty: 3
+                availabilityStatus: "AVAILABLE"
+                updatedAt: "2026-05-16T10:15:30Z"
+                dataFreshnessStatus: "ACTUAL"
+
+        "400":
+          description: Некорректные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "404":
+          description: Товар или магазин не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "429":
+          description: Превышено ограничение частоты запросов
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "503":
+          description: Сервис временно недоступен или данные временно недоступны
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/reservations:
+    post:
+      tags:
+        - Reservations
+      summary: Создание резерва товара
+      description: >
+        Создает временный резерв товара в конкретном магазине.
+        Метод используется в сценариях оформления заказа или предварительного
+        резервирования товара. Для защиты от повторного создания резерва
+        используется заголовок Idempotency-Key.
+      operationId: createReservation
+
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: >
+            Ключ идемпотентности операции. Повторный запрос с тем же ключом
+            не должен создавать новый резерв, а должен вернуть результат ранее
+            выполненной операции.
+          schema:
+            type: string
+            example: "idem-7c1f9a2d-001"
+
+        - name: X-Request-Id
+          in: header
+          required: false
+          description: Идентификатор запроса для трассировки
+          schema:
+            type: string
+            example: "req-91c2a5e7"
+
+      requestBody:
+        required: true
+        description: Данные для создания резерва товара
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReservationRequest"
+            example:
+              skuId: "sku-100045"
+              storeId: "store-077"
+              quantity: 2
+              clientId: "client-34821"
+
+      responses:
+        "201":
+          description: Резерв успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationResponse"
+              example:
+                reservationId: "res-20260516-000001"
+                skuId: "sku-100045"
+                storeId: "store-077"
+                quantity: 2
+                status: "ACTIVE"
+                expiresAt: "2026-05-16T10:30:30Z"
+                createdAt: "2026-05-16T10:15:30Z"
+
+        "200":
+          description: Повторный идемпотентный запрос, резерв уже был создан ранее
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservationResponse"
+
+        "400":
+          description: Некорректное тело запроса
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "409":
+          description: Недостаточно доступного остатка или операция временно конфликтует с другим резервированием
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "429":
+          description: Превышено ограничение частоты запросов
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "503":
+          description: Сервис временно недоступен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/v1/stores/nearby:
+    get:
+      tags:
+        - Stores
+      summary: Поиск ближайших магазинов
+      parameters:
+        - name: latitude
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+
+        - name: longitude
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+
+      responses:
+        "200":
+          description: Список ближайших магазинов
+
+  /api/v1/stores/{storeId}/availability:
+    get:
+      tags:
+        - Stores
+      summary: Доступность товаров в магазине
+      parameters:
+        - name: storeId
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: Список товаров и остатков
+
+  /api/v1/skus/{skuId}:
+    get:
+      tags:
+        - SKUs
+      summary: Получение информации о товаре
+      parameters:
+        - name: skuId
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: Информация о товаре
+
+  /api/v1/health:
+    get:
+      tags:
+        - Health
+      summary: Проверка доступности Сервиса
+      responses:
+        "200":
+          description: Сервис доступен
+
+components:
+
+  schemas:
+
+    AvailabilityResponse:
+      type: object
+      required:
+        - skuId
+        - storeId
+        - availableQty
+        - reservedQty
+        - availabilityStatus
+        - updatedAt
+        - dataFreshnessStatus
+      properties:
+        skuId:
+          type: string
+          description: Идентификатор товара
+          example: "sku-100045"
+
+        storeId:
+          type: string
+          description: Идентификатор магазина
+          example: "store-077"
+
+        availableQty:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Количество товара, доступное для продажи или резервирования
+          example: 12
+
+        reservedQty:
+          type: integer
+          format: int32
+          minimum: 0
+          description: Количество товара, уже находящееся в активных резервах
+          example: 3
+
+        availabilityStatus:
+          type: string
+          description: Расчетный статус доступности товара
+          enum:
+            - AVAILABLE
+            - LOW_STOCK
+            - OUT_OF_STOCK
+          example: "AVAILABLE"
+
+        updatedAt:
+          type: string
+          format: date-time
+          description: Время последнего обновления данных о доступности
+          example: "2026-05-16T10:15:30Z"
+
+        dataFreshnessStatus:
+          type: string
+          description: Статус актуальности данных в модели чтения
+          enum:
+            - ACTUAL
+            - STALE
+            - UNKNOWN
+          example: "ACTUAL"
+
+    CreateReservationRequest:
+      type: object
+      required:
+        - skuId
+        - storeId
+        - quantity
+        - clientId
+      properties:
+        skuId:
+          type: string
+          description: Идентификатор товара
+          example: "sku-100045"
+
+        storeId:
+          type: string
+          description: Идентификатор магазина
+          example: "store-077"
+
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Количество товара для резервирования
+          example: 2
+
+        clientId:
+          type: string
+          description: Идентификатор клиента или клиентского приложения
+          example: "client-34821"
+
+    ReservationResponse:
+      type: object
+      required:
+        - reservationId
+        - skuId
+        - storeId
+        - quantity
+        - status
+        - expiresAt
+        - createdAt
+      properties:
+        reservationId:
+          type: string
+          description: Идентификатор созданного резерва
+          example: "res-20260516-000001"
+
+        skuId:
+          type: string
+          description: Идентификатор товара
+          example: "sku-100045"
+
+        storeId:
+          type: string
+          description: Идентификатор магазина
+          example: "store-077"
+
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Количество зарезервированного товара
+          example: 2
+
+        status:
+          type: string
+          description: Статус резерва
+          enum:
+            - ACTIVE
+            - CANCELLED
+            - EXPIRED
+          example: "ACTIVE"
+
+        expiresAt:
+          type: string
+          format: date-time
+          description: Время окончания действия резерва
+          example: "2026-05-16T10:30:30Z"
+
+        createdAt:
+          type: string
+          format: date-time
+          description: Время создания резерва
+          example: "2026-05-16T10:15:30Z"
+
+    ErrorResponse:
+      type: object
+      required:
+        - errorCode
+        - message
+        - timestamp
+      properties:
+        errorCode:
+          type: string
+          description: Машиночитаемый код ошибки
+          example: "INSUFFICIENT_STOCK"
+
+        message:
+          type: string
+          description: Описание ошибки
+          example: "Недостаточно доступного остатка для создания резерва"
+
+        details:
+          type: object
+          additionalProperties: true
+          description: Дополнительные сведения об ошибке
+
+        timestamp:
+          type: string
+          format: date-time
+          description: Время формирования ошибки
+          example: "2026-05-16T10:15:30Z"
