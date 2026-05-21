@@ -1,0 +1,65 @@
+@startuml avalability_check_diagram
+title Проверка наличия товара
+
+actor "Клиентское приложение" as Client
+participant "API Gateway" as Gateway
+participant "Сервис проверки доступности" as AvailabilityService
+database "Распределенный кеш" as Cache
+database "Хранилище модели чтения" as ReadModelStore
+
+Client -> Gateway: GET /api/v1/availability?skuId&storeId\nREST/HTTPS
+activate Gateway
+
+Gateway -> Gateway: Проверка токена доступа,\nприменение ограничений частоты запросов
+
+Gateway -> AvailabilityService: GET /availability?skuId&storeId\nREST или gRPC / HTTP/2
+activate AvailabilityService
+
+AvailabilityService -> Cache: GET availability:{skuId}:{storeId}
+activate Cache
+
+alt Данные найдены в кеше
+    Cache --> AvailabilityService: availability_status,\navailable_qty,\nupdated_at,\nsource_version
+    deactivate Cache
+
+    AvailabilityService --> Gateway: 200 OK\nДоступность товара
+    deactivate AvailabilityService
+
+    Gateway --> Client: 200 OK\nРезультат проверки наличия
+    deactivate Gateway
+
+else Данные отсутствуют в кеше
+    Cache --> AvailabilityService: cache miss
+    deactivate Cache
+
+    AvailabilityService -> ReadModelStore: SELECT availability\nпо skuId и storeId
+    activate ReadModelStore
+
+    alt Данные найдены в модели чтения
+        ReadModelStore --> AvailabilityService: availability_status,\navailable_qty,\nupdated_at,\nsource_version
+        deactivate ReadModelStore
+
+        AvailabilityService -> Cache: SET availability:{skuId}:{storeId}\nс ограниченным временем жизни
+        activate Cache
+        Cache --> AvailabilityService: OK
+        deactivate Cache
+
+        AvailabilityService --> Gateway: 200 OK\nДоступность товара
+        deactivate AvailabilityService
+
+        Gateway --> Client: 200 OK\nРезультат проверки наличия
+        deactivate Gateway
+
+    else Данные отсутствуют или устарели
+        ReadModelStore --> AvailabilityService: not found / stale data
+        deactivate ReadModelStore
+
+        AvailabilityService --> Gateway: 200 OK\nСтатус: данные недоступны или требуют уточнения
+        deactivate AvailabilityService
+
+        Gateway --> Client: 200 OK\nДеградированный ответ
+        deactivate Gateway
+    end
+end
+
+@enduml

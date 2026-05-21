@@ -1,0 +1,101 @@
+@startuml reservation_diagram
+title Резервирование товара
+
+actor "Клиентское приложение" as Client
+participant "API Gateway" as Gateway
+participant "Сервис резервирования" as ReservationService
+database "Распределенный кеш" as Cache
+database "Хранилище резервов" as ReservationStore
+database "Хранилище событий" as EventStore
+queue "Event Bus" as EventBus
+
+Client -> Gateway: POST /api/v1/reservations\nREST/HTTPS\nIdempotency-Key
+activate Gateway
+
+Gateway -> Gateway: Проверка токена доступа,\nпроверка прав,\nограничение частоты запросов
+
+Gateway -> ReservationService: CreateReservation(skuId, storeId, qty, userId)\nREST или gRPC / HTTP/2\nIdempotency-Key
+activate ReservationService
+
+ReservationService -> ReservationStore: Проверка Idempotency-Key
+activate ReservationStore
+
+alt Повторный запрос с тем же Idempotency-Key
+    ReservationStore --> ReservationService: Ранее созданный результат
+    deactivate ReservationStore
+
+    ReservationService --> Gateway: 200 OK\nРезультат ранее выполненного резервирования
+    deactivate ReservationService
+
+    Gateway --> Client: 200 OK\nРезерв уже создан
+    deactivate Gateway
+
+else Новый запрос
+    ReservationStore --> ReservationService: Запрос ранее не выполнялся
+    deactivate ReservationStore
+
+    ReservationService -> Cache: Захват распределенной блокировки\nпо skuId + storeId
+    activate Cache
+
+    alt Блокировка не получена
+        Cache --> ReservationService: lock rejected
+        deactivate Cache
+
+        ReservationService --> Gateway: 409 Conflict\nРезервирование временно недоступно
+        deactivate ReservationService
+
+        Gateway --> Client: 409 Conflict\nПовторить позже
+        deactivate Gateway
+
+    else Блокировка получена
+        Cache --> ReservationService: lock acquired
+        deactivate Cache
+
+        ReservationService -> Cache: Чтение доступного остатка\navailability:{skuId}:{storeId}
+        activate Cache
+        Cache --> ReservationService: available_qty,\nreserved_qty,\nupdated_at
+        deactivate Cache
+
+        alt Доступного остатка недостаточно
+            ReservationService -> Cache: Освобождение блокировки
+            activate Cache
+            Cache --> ReservationService: OK
+            deactivate Cache
+
+            ReservationService --> Gateway: 409 Conflict\nНедостаточно товара для резерва
+            deactivate ReservationService
+
+            Gateway --> Client: 409 Conflict\nТовар недоступен для резервирования
+            deactivate Gateway
+
+        else Доступный остаток достаточен
+            ReservationService -> ReservationStore: INSERT reservation\nstatus = ACTIVE,\nexpires_at,\nIdempotency-Key
+            activate ReservationStore
+            ReservationStore --> ReservationService: reservationId
+            deactivate ReservationStore
+
+            ReservationService -> EventStore: APPEND ReservationCreated
+            activate EventStore
+            EventStore --> ReservationService: eventId
+            deactivate EventStore
+
+            ReservationService -> EventBus: Publish ReservationCreated
+            activate EventBus
+            EventBus --> ReservationService: ack
+            deactivate EventBus
+
+            ReservationService -> Cache: Обновление счетчиков резерва\nи освобождение блокировки
+            activate Cache
+            Cache --> ReservationService: OK
+            deactivate Cache
+
+            ReservationService --> Gateway: 201 Created\nreservationId,\nexpires_at,\nstatus
+            deactivate ReservationService
+
+            Gateway --> Client: 201 Created\nРезерв создан
+            deactivate Gateway
+        end
+    end
+end
+
+@enduml
