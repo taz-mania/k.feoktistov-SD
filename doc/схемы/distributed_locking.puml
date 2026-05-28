@@ -1,0 +1,54 @@
+@startuml SKU_store_key_distributed_locking
+title Распределенная блокировка по ключу SKU + магазин
+
+actor "Клиент 1" as Client1
+actor "Клиент 2" as Client2
+
+participant "Сервис резервирования\nэкземпляр 1" as ReserveService1
+participant "Сервис резервирования\nэкземпляр 2" as ReserveService2
+collections "Распределенный кэш" as Cache
+database "БД резервирования" as ReservationDb
+queue "Event Bus" as EventBus
+
+== Попытка захвата блокировки ==
+
+Client1 -> ReserveService1: Создать резерв\nSKU=1001, магазин=55
+ReserveService1 -> Cache: Захватить блокировку\nlock:reservation:55:1001\nTTL = 5 секунд
+Cache --> ReserveService1: Блокировка получена
+
+Client2 -> ReserveService2: Создать резерв\nSKU=1001, магазин=55
+ReserveService2 -> Cache: Захватить блокировку\nlock:reservation:55:1001\nTTL = 5 секунд
+Cache --> ReserveService2: Блокировка занята
+
+ReserveService2 --> Client2: Повторить позже\nили вернуть отказ
+
+== Изменение состояния под блокировкой ==
+
+ReserveService1 -> ReservationDb: Начать транзакцию
+ReserveService1 -> ReservationDb: Проверить доступный остаток
+ReservationDb --> ReserveService1: Остаток доступен
+
+ReserveService1 -> ReservationDb: Создать резерв\nобновить состояние остатка
+ReservationDb --> ReserveService1: Изменения сохранены
+
+ReserveService1 -> ReservationDb: Подтвердить транзакцию
+ReservationDb --> ReserveService1: Транзакция подтверждена
+
+ReserveService1 -> EventBus: Опубликовать событие\nreservation.created
+EventBus --> ReserveService1: Событие принято
+
+ReserveService1 -> Cache: Освободить блокировку\nlock:reservation:55:1001
+Cache --> ReserveService1: Блокировка освобождена
+
+ReserveService1 --> Client1: Резерв подтвержден
+
+== Защита от зависшей блокировки ==
+
+alt Экземпляр Сервиса резервирования отказал до освобождения блокировки
+    ... проходит TTL блокировки ...
+    Cache -> Cache: Автоматически удалить ключ\nlock:reservation:55:1001
+else Операция завершилась штатно
+    ReserveService1 -> Cache: Освободить блокировку
+end
+
+@enduml

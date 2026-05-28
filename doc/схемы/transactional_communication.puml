@@ -1,0 +1,67 @@
+@startuml reservation_db_to_event_bus_transactional_communication
+title Транзакционное исходящее сообщение между БД резервирования и Event Bus
+
+actor "Клиент" as Client
+participant "Сервис резервирования" as ReserveService
+database "БД резервирования" as ReservationDb
+participant "Публикатор исходящих сообщений" as OutboxPublisher
+queue "Event Bus" as EventBus
+
+== Создание резерва и исходящего сообщения ==
+
+Client -> ReserveService: Запрос на резервирование\nSKU + магазин + количество
+ReserveService -> ReservationDb: Начать транзакцию
+
+ReserveService -> ReservationDb: Проверить доступный остаток\nпо SKU + магазин
+ReservationDb --> ReserveService: Остаток доступен
+
+ReserveService -> ReservationDb: Создать запись резерва\nstatus = CREATED
+ReservationDb --> ReserveService: Запись создана
+
+ReserveService -> ReservationDb: Сохранить исходящее сообщение\nreservation.created\nstatus = NEW
+ReservationDb --> ReserveService: Сообщение сохранено
+
+ReserveService -> ReservationDb: Подтвердить транзакцию
+ReservationDb --> ReserveService: Транзакция подтверждена
+
+ReserveService --> Client: Резерв создан
+
+== Публикация события после фиксации транзакции ==
+
+OutboxPublisher -> ReservationDb: Найти исходящие сообщения\nstatus = NEW
+ReservationDb --> OutboxPublisher: reservation.created
+
+OutboxPublisher -> EventBus: Опубликовать событие\nreservation.created
+EventBus --> OutboxPublisher: Событие принято
+
+OutboxPublisher -> ReservationDb: Пометить сообщение\nstatus = PUBLISHED
+ReservationDb --> OutboxPublisher: Статус обновлен
+
+== Сбой при публикации ==
+
+alt Event Bus временно недоступен
+    OutboxPublisher -> ReservationDb: Найти исходящие сообщения\nstatus = NEW
+    ReservationDb --> OutboxPublisher: reservation.created
+
+    OutboxPublisher -> EventBus: Опубликовать событие\nreservation.created
+    EventBus --> OutboxPublisher: Ошибка публикации
+
+    OutboxPublisher -> ReservationDb: Увеличить счетчик попыток\nstatus = NEW
+    ReservationDb --> OutboxPublisher: Попытка сохранена
+
+    note right of OutboxPublisher
+      Сообщение остается в БД резервирования
+      и будет опубликовано повторно
+    end note
+else Повторная публикация успешна
+    OutboxPublisher -> ReservationDb: Найти исходящие сообщения\nstatus = NEW
+    ReservationDb --> OutboxPublisher: reservation.created
+
+    OutboxPublisher -> EventBus: Повторно опубликовать событие\nreservation.created
+    EventBus --> OutboxPublisher: Событие принято
+
+    OutboxPublisher -> ReservationDb: Пометить сообщение\nstatus = PUBLISHED
+    ReservationDb --> OutboxPublisher: Статус обновлен
+end
+
+@enduml
