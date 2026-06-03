@@ -1,0 +1,16 @@
+@startuml read_model_diagram
+title Структура модели чтения
+
+entity "Документ модели чтения" as ReadModel {
+  * document_id : UUID
+  --
+  sku_id : UUID
+  store_id : UUID
+  available_qty : integer
+  reserved_qty : integer
+  last_event_id : UUID
+  version : integer
+  updated_at : datetime
+}
+
+@enduml
