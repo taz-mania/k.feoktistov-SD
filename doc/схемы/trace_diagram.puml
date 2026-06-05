@@ -1,0 +1,29 @@
+@startuml trace_diagram
+title Схема хранения данных трассировки
+
+entity "Трасса" as Trace {
+  * trace_id : UUID
+  --
+  start_time : datetime
+  end_time : datetime
+  duration_ms : long
+  status : string
+}
+
+entity "Сегмент трассы" as Span {
+  * span_id : UUID
+  --
+  trace_id : UUID
+  parent_span_id : UUID
+  component_name : string
+  operation_name : string
+  start_time : datetime
+  end_time : datetime
+  duration_ms : long
+  status : string
+  tags : json
+}
+
+Trace ||--o{ Span : содержит
+
+@enduml

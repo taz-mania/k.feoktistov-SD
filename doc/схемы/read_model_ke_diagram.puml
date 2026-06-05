@@ -1,0 +1,42 @@
+@startuml read_model_ke_diagram
+title Структура Redis-ключей
+
+entity "Ключ доступности товара" as AvailabilityKey {
+  * availability:{store_id}:{sku_id}
+  --
+  sku_id : UUID
+  store_id : UUID
+  available_qty : integer
+  reserved_qty : integer
+  version : integer
+  updated_at : datetime
+}
+
+entity "Ключ горячего товара" as HotSkuKey {
+  * hot_sku:{sku_id}
+  --
+  sku_id : UUID
+  request_count : integer
+  updated_at : datetime
+}
+
+entity "Ключ результата запроса" as QueryCacheKey {
+  * query:{hash}
+  --
+  request_hash : string
+  result : json
+  created_at : datetime
+}
+
+entity "Ключ блокировки" as LockKey {
+  * lock:reservation:{store_id}:{sku_id}
+  --
+  owner_id : UUID
+  expires_at : datetime
+}
+
+AvailabilityKey ||--o{ HotSkuKey : может_быть_популярным
+QueryCacheKey }o--|| AvailabilityKey : использует
+LockKey }o--|| AvailabilityKey : защищает
+
+@enduml

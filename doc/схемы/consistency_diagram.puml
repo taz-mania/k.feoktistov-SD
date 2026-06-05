@@ -1,0 +1,22 @@
+@startuml consistency_diagram
+title Обеспечение консистентности данных
+
+entity "Контур записи" as WriteModel {
+  reservation_id
+  version
+}
+
+entity "События" as Events {
+  event_id
+  event_version
+}
+
+entity "Модель чтения" as ReadModel {
+  last_event_id
+  version
+}
+
+WriteModel ||--o{ Events : публикует
+Events ||--o{ ReadModel : обновляет
+
+@enduml

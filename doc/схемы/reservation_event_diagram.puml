@@ -1,0 +1,21 @@
+@startuml reservation_event_diagram
+title Схема события резервирования
+
+entity "Событие резервирования" as ReservationEvent {
+  * event_id : UUID
+  --
+  event_type : string
+  event_version : integer
+  correlation_id : UUID
+  occurred_at : datetime
+  source : string
+  reservation_id : UUID
+  sku_id : UUID
+  store_id : UUID
+  reserved_qty : integer
+  reservation_status : string
+  expires_at : datetime
+  reservation_version : integer
+}
+
+@enduml
