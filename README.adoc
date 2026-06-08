@@ -20,8 +20,8 @@
 
 Используется формат описания link:https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/[AsciiDoc]
 
-Рендер в pdf:
+Рендер в pdf (команда для PowerShell):
 
 ```
-docker run --rm -v ./:/documents  asciidoctor/docker-asciidoctor asciidoctor-pdf "Архитектерное решение.adoc"
+docker run --rm -v ${PWD}:/documents  asciidoctor/docker-asciidoctor asciidoctor-pdf "architecture-decision.adoc"
 ```
