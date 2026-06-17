@@ -1,0 +1,129 @@
+@startuml
+title Схема защиты и управления доступом Сервиса| 3й вариант
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+legend right
+  == Обозначения ==
+  PEP — точка применения политик
+  JWT — access-токен пользователя
+  mTLS — взаимная аутентификация сервисов
+  Vault — хранение секретов и сертификатов
+endlegend
+
+actor "Пользователь" as User
+actor "Сотрудник магазина" as StoreUser
+actor "Служба доставки" as DeliveryUser
+
+package "Недоверенная внешняя зона" as ExternalZone {
+  component "Мобильное приложение" as MobileApp
+  component "Клиентское приложение\nсотрудника магазина" as StoreApp
+  component "Клиентское приложение\nслужбы доставки" as DeliveryApp
+  component "Внешний поставщик\nудостоверений" as IdP
+}
+
+package "Пограничная зона Сервиса" as EdgeZone {
+  component "Защита публичного API\nWAF / защита от DDoS /\nзащита от ботов" as PublicApiProtection
+  component "API Gateway\nPEP внешнего доступа" as ApiGateway
+}
+
+package "Внутренний контур Сервиса\nmTLS-периметр" as InternalZone {
+  component "PEP бизнес-операций\nво внутренних сервисах" as InternalPEP
+
+  component "Сервис запросов" as QueryService
+  component "Сервис резервирования" as ReservationService
+  component "Загрузчик модели чтения" as ReadModelLoader
+  component "Сервис прогрева кеша" as CacheWarmupService
+  component "Сервис синхронизации кеша" as CacheSyncService
+  component "Сервис сверки" as ReconciliationService
+  component "Сервис агрегации метрик" as MetricsAggregationService
+  component "Захват изменений (CDC)" as CDC
+
+  component "Интеграционные адаптеры" as IntegrationAdapters
+}
+
+package "Контур событий и данных Сервиса" as ProtectedResources {
+  queue "Event Bus / Kafka\nPEP доступа к топикам" as Kafka
+  database "PostgreSQL" as PostgreSQL
+  database "MongoDB" as MongoDB
+  database "Redis Cluster" as Redis
+}
+
+package "Контур управления секретами" as SecretZone {
+  component "HashiCorp Vault\nPEP доступа к секретам" as Vault
+}
+
+package "Контур эксплуатации Сервиса" as OpsZone {
+  node "Kubernetes\nPEP административного доступа" as Kubernetes
+  component "Мониторинг и журналирование\nСервиса" as Observability
+}
+
+User --> MobileApp
+StoreUser --> StoreApp
+DeliveryUser --> DeliveryApp
+
+MobileApp --> IdP : OAuth 2.0 / OpenID Connect
+StoreApp --> IdP : OAuth 2.0 / OpenID Connect
+DeliveryApp --> IdP : OAuth 2.0 / OpenID Connect
+
+IdP --> MobileApp : JWT access-токен\nrefresh-токен
+IdP --> StoreApp : JWT access-токен\nrefresh-токен
+IdP --> DeliveryApp : JWT access-токен\nrefresh-токен
+
+MobileApp --> PublicApiProtection : HTTPS + JWT
+StoreApp --> PublicApiProtection : HTTPS + JWT
+DeliveryApp --> PublicApiProtection : HTTPS + JWT
+
+PublicApiProtection --> ApiGateway : проверенный HTTPS-запрос\nпосле фильтрации атак
+
+ApiGateway --> Vault : получение доверенных ключей\nпроверки JWT access-токенов
+Vault --> ApiGateway : ключи проверки подписи JWT
+
+ApiGateway --> InternalPEP : проверка ролей,\nполитик доступа,\nдопустимости операции
+
+ApiGateway --> QueryService : gRPC over mTLS\nпроверенный контекст пользователя
+ApiGateway --> ReservationService : gRPC over mTLS\nпроверенный контекст пользователя
+
+InternalPEP --> QueryService : разрешение или запрет\nоперации чтения
+InternalPEP --> ReservationService : разрешение или запрет\nоперации резервирования
+
+QueryService --> Vault : получение сервисных секретов\nи сертификатов
+ReservationService --> Vault : получение сервисных секретов\nи сертификатов
+ReadModelLoader --> Vault : получение сервисных секретов\nи сертификатов
+CacheWarmupService --> Vault : получение сервисных секретов\nи сертификатов
+CacheSyncService --> Vault : получение сервисных секретов\nи сертификатов
+ReconciliationService --> Vault : получение сервисных секретов\nи сертификатов
+MetricsAggregationService --> Vault : получение сервисных секретов\nи сертификатов
+CDC --> Vault : получение сервисных секретов\nи сертификатов
+IntegrationAdapters --> Vault : получение интеграционных\nсекретов и сертификатов
+
+QueryService --> PostgreSQL : доступ по сервисной роли
+QueryService --> MongoDB : доступ по сервисной роли
+QueryService --> Redis : доступ по сервисной роли
+
+ReservationService --> PostgreSQL : доступ по сервисной роли
+ReservationService --> Redis : доступ по сервисной роли
+ReservationService --> Kafka : публикация событий\nпо правам producer
+
+ReadModelLoader --> Kafka : чтение событий\nпо правам consumer
+CacheWarmupService --> Kafka : чтение событий\nпо правам consumer
+CacheSyncService --> Kafka : чтение событий\nпо правам consumer
+ReconciliationService --> Kafka : публикация и чтение событий\nпо сервисной роли
+MetricsAggregationService --> Kafka : чтение событий\nпо сервисной роли
+IntegrationAdapters --> Kafka : публикация событий\nпо интеграционной роли
+
+Kubernetes --> PublicApiProtection : применение политик\nзащиты публичного API
+Kubernetes --> ApiGateway : применение политик доступа
+Kubernetes --> InternalZone : развертывание сервисов\nи сервисных учетных записей
+
+PublicApiProtection --> Observability : события WAF,\nDDoS-защиты и защиты от ботов
+ApiGateway --> Observability : события аутентификации\nи авторизации
+InternalPEP --> Observability : события отказа доступа\nи запрещенных операций
+Vault --> Observability : аудит доступа к секретам
+Kafka --> Observability : события доступа к топикам
+Kubernetes --> Observability : события изменения конфигурации
+
+@enduml
