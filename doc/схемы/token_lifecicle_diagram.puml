@@ -1,0 +1,73 @@
+@startuml token_lifecicle
+title Выдача, проверка и обновление токенов
+
+actor "Пользователь" as User
+participant "Клиентское приложение" as Client
+participant "Внешний поставщик\nудостоверений" as IdP
+participant "API Gateway" as Gateway
+participant "Внутренний сервис\nСервиса" as Service
+participant "Журналы аудита\nбезопасности" as Audit
+
+== Выдача токенов ==
+
+User -> Client : ввод учетных данных
+Client -> IdP : запрос аутентификации\nOAuth 2.0 / OpenID Connect
+IdP -> IdP : проверка учетных данных\nи состояния учетной записи
+
+alt Аутентификация успешна
+  IdP --> Client : JWT access-токен,\nrefresh-токен,\nпараметры пользовательской сессии
+  IdP -> Audit : событие успешной\nвыдачи токенов
+else Аутентификация неуспешна
+  IdP --> Client : отказ в аутентификации
+  IdP -> Audit : событие ошибки\nаутентификации
+end
+
+== Проверка JWT access-токена ==
+
+Client -> Gateway : HTTPS-запрос к API\nJWT access-токен
+Gateway -> Gateway : проверка подписи токена
+Gateway -> Gateway : проверка срока действия
+Gateway -> Gateway : проверка issuer и audience
+Gateway -> Gateway : проверка ролей\nи политик доступа
+
+alt Токен действителен и доступ разрешен
+  Gateway -> Service : gRPC over mTLS\nидентификатор пользователя,\nроли, идентификатор запроса
+  Service -> Service : проверка допустимости\nбизнес-операции
+  Service --> Gateway : результат операции
+  Gateway --> Client : ответ API
+  Gateway -> Audit : событие успешной\nавторизации запроса
+else Токен недействителен или доступ запрещен
+  Gateway --> Client : отказ в доступе
+  Gateway -> Audit : событие отказа\nавторизации
+end
+
+== Обновление токена ==
+
+Client -> IdP : запрос обновления токена\nrefresh-токен
+IdP -> IdP : проверка refresh-токена
+IdP -> IdP : проверка состояния\nпользовательской сессии
+
+alt Refresh-токен действителен
+  IdP --> Client : новый JWT access-токен
+  IdP -> Audit : событие успешного\nобновления токена
+else Refresh-токен недействителен,\nотозван или истек
+  IdP --> Client : отказ в обновлении токена
+  IdP -> Audit : событие ошибки\nобновления токена
+end
+
+== Отзыв и блокировка токенов ==
+
+alt Завершение сессии, изменение ролей\nили компрометация учетной записи
+  IdP -> IdP : отзыв пользовательской сессии\nи связанных токенов
+  IdP -> Audit : событие отзыва токенов
+end
+
+Client -> Gateway : запрос с отозванным\nили недействительным токеном
+Gateway -> Gateway : проверка токена
+
+alt Токен отозван или недействителен
+  Gateway --> Client : отказ в доступе
+  Gateway -> Audit : событие использования\nнедействительного токена
+end
+
+@enduml
