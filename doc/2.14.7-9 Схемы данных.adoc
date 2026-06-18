@@ -127,7 +127,7 @@ image::consistency_diagram.svg[Обеспечение консистентнос
 | Операция резервирования | `operation_id`
 | Конфликт сверки | `conflict_id`
 | Событие | `event_id`
-| Пользовательский запрос | `request_id`
+| Идентификатор запроса | `request_id`
 | Трасса | `trace_id`
 |===
 
