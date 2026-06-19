@@ -651,4 +651,4 @@
 
 ifndef::imagesdir[:imagesdir: /doc/images]
 
-image::test_flow_diagram.svg[Схема испытаний Сервиса]
+image::test_flow_diagram.png[Схема испытаний Сервиса]

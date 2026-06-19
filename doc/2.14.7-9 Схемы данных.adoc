@@ -87,7 +87,7 @@
 
 ifndef::imagesdir[:imagesdir: /doc/images]
 
-image::consistency_diagram.svg[Обеспечение консистентности данных]
+image::consistency_diagram.png[Обеспечение консистентности данных]
 
 .Требования к консистентности по категориям данных
 [cols="1,1",options="header"]

@@ -2,7 +2,7 @@
 
 ifndef::imagesdir[:imagesdir: /doc/images]
 
-image::C2_service_architecture_1.svg[Детальная архитектура Сервиса]
+image::C2_service_architecture_1.png[Детальная архитектура Сервиса]
 
 ==== 2.8.1. Общее описание детальной архитектуры 
 

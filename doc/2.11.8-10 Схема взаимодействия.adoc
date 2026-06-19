@@ -304,7 +304,7 @@ Consumer group задается только для компонентов, чи
 
 ifndef::imagesdir[:imagesdir: /doc/images]
 
-image::kafka_deployment_topology.svg[Deployment-диаграмма топологии Kafka]
+image::kafka_deployment_topology.png[Deployment-диаграмма топологии Kafka]
 
 На deployment-диаграмме показана топология Kafka-кластера, включая топики, партиции, consumer groups и основные связи с сервисами-поставщиками и сервисами-потребителями. 
 
