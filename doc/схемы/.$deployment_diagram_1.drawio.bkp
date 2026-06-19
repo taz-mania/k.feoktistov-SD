@@ -1,11 +1,11 @@
 <mxfile host="Electron">
   <diagram name="Страница-1" id="9fv5oiHbdB_CIRYyBUPq">
-    <mxGraphModel dx="3631" dy="2831" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2847" dy="2370" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="hCSgkJCekSgdJxalmfRh-120" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#66B2FF;strokeWidth=0;dashed=1;" value="" vertex="1">
-          <mxGeometry height="1380" width="1365" x="-305" y="-620" as="geometry" />
+          <mxGeometry height="1180" width="1365" x="-305" y="-460" as="geometry" />
         </mxCell>
         <mxCell id="hCSgkJCekSgdJxalmfRh-103" parent="1" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fillColor=#DEEBCA;strokeColor=#36393d;" value="Контур обработки событий" vertex="1">
           <mxGeometry height="120" width="440" x="289" y="-440" as="geometry" />
@@ -534,85 +534,6 @@
               <mxPoint x="780" y="-165" />
             </Array>
           </mxGeometry>
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-2" parent="1" style="verticalAlign=top;align=left;spacingTop=8;spacingLeft=2;spacingRight=12;shape=cube;size=10;direction=south;fontStyle=4;html=1;whiteSpace=wrap;fillColor=#F7ECFF;strokeColor=#36393d;dashed=1;" value="Контур автоматического развертывания&amp;nbsp;" vertex="1">
-          <mxGeometry height="141" width="310" x="-41" y="-602" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-7" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QeejWglgoPj7JiuAWtAv-4">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Git-репозиторий IaC" vertex="1">
-          <mxGeometry height="30" width="120" x="118" y="-561" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-21" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.002;entryY=0.779;entryDx=0;entryDy=0;dashed=1;entryPerimeter=0;" target="0vxcbMhi7EkU4WnJbFrG-27">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="609" y="-500" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-25" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;dashed=1;" target="QeejWglgoPj7JiuAWtAv-24">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-28" connectable="0" parent="QeejWglgoPj7JiuAWtAv-25" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&amp;nbsp;создание&amp;nbsp;&lt;div&gt;&amp;nbsp;инфраструктуры&amp;nbsp;&lt;/div&gt;" vertex="1">
-          <mxGeometry relative="1" x="-0.0455" y="1" as="geometry">
-            <mxPoint x="26" y="1" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Terraform" vertex="1">
-          <mxGeometry height="30" width="120" x="118" y="-511" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-10" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.001;entryY=0.907;entryDx=0;entryDy=0;dashed=1;entryPerimeter=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="0vxcbMhi7EkU4WnJbFrG-27">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="549" y="-595" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-22" connectable="0" parent="QeejWglgoPj7JiuAWtAv-10" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&amp;nbsp;развертывание&amp;nbsp;&lt;div&gt;&amp;nbsp;микросервисов&amp;nbsp;&lt;/div&gt;" vertex="1">
-          <mxGeometry relative="1" x="-0.0687" y="-2" as="geometry">
-            <mxPoint x="5" y="-2" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Helm" vertex="1">
-          <mxGeometry height="30" width="120" x="-22" y="-511" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-8" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="QeejWglgoPj7JiuAWtAv-5">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Git-репозиторий Helm-чартов" vertex="1">
-          <mxGeometry height="30" width="120" x="-22" y="-561" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-24" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="T" vertex="1">
-          <mxGeometry height="26" width="26" x="436" y="-509" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-26" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.338;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;" target="hCSgkJCekSgdJxalmfRh-103">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="208" y="-400" />
-              <mxPoint x="289" y="-400" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-27" connectable="0" parent="QeejWglgoPj7JiuAWtAv-26" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="создание инфраструктуры" vertex="1">
-          <mxGeometry relative="1" x="-0.4644" y="2" as="geometry">
-            <mxPoint x="-32" as="offset" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-29" parent="1" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;" value="T" vertex="1">
-          <mxGeometry height="26" width="26" x="350" y="716" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-30" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;" target="0vxcbMhi7EkU4WnJbFrG-3">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-31" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.145;entryY=1;entryDx=0;entryDy=-4.35;entryPerimeter=0;dashed=1;" target="0vxcbMhi7EkU4WnJbFrG-4">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-32" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;entryPerimeter=0;dashed=1;" target="0vxcbMhi7EkU4WnJbFrG-1">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="280" y="729" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="QeejWglgoPj7JiuAWtAv-33" edge="1" parent="1" source="QeejWglgoPj7JiuAWtAv-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.855;entryY=1;entryDx=0;entryDy=-4.35;entryPerimeter=0;dashed=1;" target="0vxcbMhi7EkU4WnJbFrG-2">
-          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
