@@ -85,6 +85,12 @@ include::./doc/3.02.3-4 Аудит безопасности.adoc[]
 
 include::./doc/4.01 Схема развертывания.adoc[]
 
-include::./doc/4.02 CICD процесс.adoc[]
+include::./doc/4.02.1-2 CICD процесс.adoc[]
+
+include::./doc/4.02.3-5 CICD процесс.adoc[]
 
 include::./doc/4.03 Планы тестирования.adoc[]
+
+== ГЛОССАРИЙ
+
+include::./doc/Глоссарий.adoc[]
