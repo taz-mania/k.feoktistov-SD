@@ -1,5 +1,5 @@
 
-@startuml
+@startuml deployment_diagram
 
 skinparam shadowing false
 skinparam componentStyle rectangle

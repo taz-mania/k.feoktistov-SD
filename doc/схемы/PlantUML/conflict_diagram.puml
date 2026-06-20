@@ -1,0 +1,20 @@
+@startuml conflict_diagram
+title Схема хранения конфликтов сверки
+
+entity "Конфликт сверки" as Conflict {
+  * conflict_id : UUID
+  --
+  sku_id : UUID
+  store_id : UUID
+  expected_qty : integer
+  actual_qty : integer
+  difference_qty : integer
+  conflict_type : string
+  conflict_status : string
+  detected_at : datetime
+  resolved_at : datetime
+  resolution_method : string
+}
+
+
+@enduml

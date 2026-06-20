@@ -1,0 +1,22 @@
+@startuml event_message_diagram
+title Общая схема Event Bus события
+
+entity "Event Bus событие" as EventMessage {
+  * event_id : UUID
+  --
+  event_type : string
+  event_version : integer
+  correlation_id : UUID
+  aggregate_id : string
+  aggregate_version : integer
+  occurred_at : datetime
+  source : string
+}
+
+entity "Полезная нагрузка" as Payload {
+  payload : json
+}
+
+EventMessage ||--|| Payload : содержит
+
+@enduml

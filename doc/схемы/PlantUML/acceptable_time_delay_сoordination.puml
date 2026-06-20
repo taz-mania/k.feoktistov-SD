@@ -1,0 +1,74 @@
+@startuml acceptable_time_delay_сoordination
+title Согласованность с допустимой временной задержкой между контуром записи и контуром чтения
+
+actor "Клиент" as Client
+participant "Сервис резервирования" as ReserveService
+database "БД резервирования" as ReservationDb
+participant "Захват изменений\n(CDC)" as CdcService
+queue "Event Bus" as EventBus
+participant "Загрузчик моделей чтения" as ReadModelLoader
+database "Хранилище модели чтения" as ReadModelStorage
+collections "Распределенный кэш" as Cache
+participant "Сервис запросов" as QueryService
+
+== Контур записи: фиксация резерва ==
+
+Client -> ReserveService: Создать резерв\nSKU + магазин + количество
+ReserveService -> ReservationDb: Начать транзакцию
+ReserveService -> ReservationDb: Создать резерв\nобновить состояние остатка
+ReservationDb --> ReserveService: Изменения сохранены
+ReserveService -> ReservationDb: Подтвердить транзакцию
+ReservationDb --> ReserveService: Транзакция подтверждена
+ReserveService --> Client: Резерв подтвержден
+
+== Допустимое временное рассогласование ==
+
+Client -> QueryService: Проверить доступность\nтого же SKU + магазин
+QueryService -> Cache: Получить доступность
+Cache --> QueryService: Старое значение\nversion = 21
+QueryService --> Client: Ответ по текущей модели чтения\nversion = 21
+
+note over QueryService,Cache
+  Контур чтения еще не получил событие
+  о новом резерве. Это допустимая
+  временная задержка согласованности.
+end note
+
+== Передача изменения из контура записи ==
+
+CdcService -> ReservationDb: Прочитать подтвержденное изменение\nиз журнала предварительной записи
+ReservationDb --> CdcService: Изменение резерва\nversion = 22
+
+CdcService -> EventBus: Опубликовать событие\nreservation.created\nversion = 22
+EventBus --> CdcService: Событие принято
+
+== Обновление контура чтения ==
+
+ReadModelLoader -> EventBus: Прочитать событие\nreservation.created\nversion = 22
+EventBus --> ReadModelLoader: Событие получено
+
+ReadModelLoader -> ReadModelStorage: Обновить модель чтения\nversion = 22
+ReadModelStorage --> ReadModelLoader: Модель чтения обновлена
+
+ReadModelLoader -> Cache: Инвалидировать ключ\navailability:{store_id}:{sku_id}
+Cache --> ReadModelLoader: Ключ удален
+
+ReadModelLoader -> EventBus: Подтвердить обработку события
+
+== Чтение после синхронизации ==
+
+Client -> QueryService: Повторно проверить доступность
+QueryService -> Cache: Получить доступность
+
+alt Значение в кэше отсутствует
+    QueryService -> ReadModelStorage: Получить актуальное состояние\nSKU + магазин
+    ReadModelStorage --> QueryService: Новое значение\nversion = 22
+    QueryService -> Cache: Сохранить новое значение\nс ограниченным временем жизни
+    Cache --> QueryService: Значение сохранено
+else Значение уже обновлено
+    Cache --> QueryService: Новое значение\nversion = 22
+end
+
+QueryService --> Client: Ответ по обновленной модели чтения\nversion = 22
+
+@enduml

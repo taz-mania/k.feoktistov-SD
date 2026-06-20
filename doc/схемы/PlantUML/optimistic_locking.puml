@@ -1,0 +1,55 @@
+@startuml competitive_reservation_optimistic_locking 
+title Оптимистическая блокировка при конкурентном резервировании
+
+actor "Клиент 1" as Client1
+actor "Клиент 2" as Client2
+
+participant "Сервис резервирования\nэкземпляр 1" as ReserveService1
+participant "Сервис резервирования\nэкземпляр 2" as ReserveService2
+database "БД резервирования" as ReservationDb
+queue "Event Bus" as EventBus
+
+== Параллельное чтение состояния остатка ==
+
+Client1 -> ReserveService1: Запрос на резервирование\nSKU + магазин + количество
+ReserveService1 -> ReservationDb: Прочитать остаток и версию\nпо SKU + магазин
+ReservationDb --> ReserveService1: available_qty = 10,\nversion = 7
+
+Client2 -> ReserveService2: Запрос на резервирование\nтого же SKU + магазин
+ReserveService2 -> ReservationDb: Прочитать остаток и версию\nпо SKU + магазин
+ReservationDb --> ReserveService2: available_qty = 10,\nversion = 7
+
+== Успешное обновление первым запросом ==
+
+ReserveService1 -> ReservationDb: Обновить остаток\navailable_qty = 8,\nversion = 8\n   
+ReservationDb --> ReserveService1: Обновление выполнено
+
+ReserveService1 -> ReservationDb: Создать запись резерва
+ReservationDb --> ReserveService1: Резерв создан
+
+ReserveService1 -> EventBus: Опубликовать событие\nreservation.created
+EventBus --> ReserveService1: Событие принято
+
+ReserveService1 --> Client1: Резерв подтвержден
+
+== Конфликт версии во втором запросе ==
+
+ReserveService2 -> ReservationDb: Обновить остаток\navailable_qty = 8,\nversion = 8\nwhere version = 7
+ReservationDb --> ReserveService2: Обновлено 0 строк\nконфликт версии
+
+ReserveService2 -> ReservationDb: Повторно прочитать актуальный остаток
+ReservationDb --> ReserveService2: available_qty = 8,\nversion = 8
+
+alt Доступного остатка достаточно
+    ReserveService2 -> ReservationDb: Повторить обновление\nс актуальной версией
+    ReservationDb --> ReserveService2: Обновление выполнено
+    ReserveService2 -> ReservationDb: Создать запись резерва
+    ReservationDb --> ReserveService2: Резерв создан
+    ReserveService2 -> EventBus: Опубликовать событие\nreservation.created
+    EventBus --> ReserveService2: Событие принято
+    ReserveService2 --> Client2: Резерв подтвержден
+else Доступного остатка недостаточно
+    ReserveService2 --> Client2: Отказ в резервировании\nнедостаточный остаток
+end
+
+@enduml

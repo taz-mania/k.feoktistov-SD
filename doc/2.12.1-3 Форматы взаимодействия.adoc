@@ -318,7 +318,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsI...
 header.payload.signature
 ```
 
-1. *Заголовок токена `header`*:
+. *Заголовок токена `header`*:
 
 ```json
 {
@@ -326,8 +326,9 @@ header.payload.signature
   "typ": "JWT"      // тип токена
 }
 ```
+
 [start=2]
-2. *Тело токена `payload`*: 
+. *Тело токена `payload`*: 
 
 ```json
 {
@@ -336,8 +337,9 @@ header.payload.signature
   "exp": 1778496000    //срок действия токена
 }
 ```
+
 [start=3]
-3. *Подпись токена `signature`*
+. *Подпись токена `signature`*
 
 ```text
 Это просто бинарный результат криптографического алгоритма над заголовком и телом токена

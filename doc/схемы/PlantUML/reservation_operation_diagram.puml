@@ -1,0 +1,23 @@
+@startuml reservation_operation_diagram
+title Схема хранения операций резервирования
+
+entity "Резерв" as Reservation {
+  * reservation_id : UUID
+}
+
+entity "Операция резервирования" as ReservationOperation {
+  * operation_id : UUID
+  --
+  reservation_id : UUID
+  operation_type : string
+  operation_status : string
+  request_id : UUID
+  source_system : string
+  created_at : datetime
+  processed_at : datetime
+  details : json
+}
+
+Reservation ||--o{ ReservationOperation : содержит
+
+@enduml
