@@ -379,7 +379,7 @@ X-Request-Id: req-10001
 
 Поля модели:
 
-[cols="0,0,1", options="header"]
+[cols="1,1,2", options="header"]
 |===
 | Поле | Тип | Назначение
 
@@ -404,7 +404,7 @@ X-Request-Id: req-10001
 
 Поля модели:
 
-[cols="0,0,1", options="header"]
+[cols="1,1,2", options="header"]
 |===
 | Поле | Тип | Назначение
 
@@ -429,7 +429,7 @@ X-Request-Id: req-10001
 
 Поля модели:
 
-[cols="0,0,1", options="header"]
+[cols="1,1,2", options="header"]
 |===
 | Поле | Тип | Назначение
 
@@ -454,7 +454,7 @@ X-Request-Id: req-10001
 
 Поля модели:
 
-[cols="0,0,1", options="header"]
+[cols="1,1,2", options="header"]
 |===
 | Поле | Тип | Назначение
 
@@ -478,7 +478,7 @@ X-Request-Id: req-10001
 
 Поля модели:
 
-[cols="0,0,1", options="header"]
+[cols="1,1,2", options="header"]
 |===
 | Поле | Тип | Назначение
 
@@ -502,7 +502,7 @@ GET /api/v1/availability
 
 *Входные параметры*
 
-[cols="0,0,0,1", options="header"]
+[cols="1,1,1,2", options="header"]
 |===
 | Параметр | Тип | Обязательный | Назначение
 
@@ -600,7 +600,7 @@ GET /api/v1/stores/nearby
 
 *Входные параметры*
 
-[cols="0,0,0,1", options="header"]
+[cols="1,1,1,2", options="header"]
 |===
 | Параметр | Тип | Обязательный | Назначение
 
@@ -712,7 +712,7 @@ GET /api/v1/stores/{store_id}/availability
 
 *Входные параметры*
 
-[cols="0,0,0,1", options="header"]
+[cols="1,1,1,2", options="header"]
 |===
 | Параметр | Тип | Обязательный | Назначение
 
@@ -802,7 +802,7 @@ GET /api/v1/skus/{sku}
 
 *Входные параметры*
 
-[cols="0,0,0,1", options="header"]
+[cols="1,1,1,2", options="header"]
 |===
 | Параметр | Тип | Обязательный | Назначение
 
